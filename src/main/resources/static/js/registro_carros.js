@@ -49,12 +49,26 @@ async function cargarRegistros() {
 function mostrarTablaRegistros(registros) {
     let html = `<thead>
         <tr>
-            <th>ID</th><th>Docente</th><th>RUT</th><th>Carro</th><th>Equipos</th><th>Sala</th><th>Fecha</th><th>Préstamo</th><th>Entrega</th><th>Responsable</th><th>Estado</th><th>Acción</th>
+            <th>ID</th><th>Docente</th><th>RUT</th><th>Carro</th><th>Equipos</th><th>Sala</th><th>Fecha</th><th>Entrega</th><th>Devolución</th><th>Responsable</th><th>Estado</th><th>Acción</th>
         </tr>
     </thead>
     <tbody>`;
     registros.forEach(reg => {
         let estadoClass = reg.estadoPrestamo === 'PRESTADO' ? 'select-prestado' : (reg.estadoPrestamo === 'ENTREGADO' ? 'select-entregado' : '');
+        // Formatear horas a hh:mm
+        function soloHora(str) {
+            if (!str) return '';
+            let t = str.split('T')[1] || str;
+            return t.substring(0,5);
+        }
+        // Formatear fecha a mm:dd
+        function soloMesDia(str) {
+            if (!str) return '';
+            let d = new Date(str);
+            let mes = (d.getMonth() + 1).toString().padStart(2, '0');
+            let dia = d.getDate().toString().padStart(2, '0');
+            return mes + ':' + dia;
+        }
         html += `<tr data-id="${reg.id}">
             <td>${reg.id}</td>
             <td>${reg.nombreDocente}</td>
@@ -62,9 +76,9 @@ function mostrarTablaRegistros(registros) {
             <td>${reg.nombreCarro}</td>
             <td>${reg.cantidadEquipos}</td>
             <td>${reg.sala}</td>
-            <td>${reg.fechaDia}</td>
-            <td>${reg.horaPrestamo ? reg.horaPrestamo.replace('T', ' ') : ''}</td>
-            <td>${reg.horaEntrega ? reg.horaEntrega.replace('T', ' ') : ''}</td>
+            <td>${soloMesDia(reg.fechaDia)}</td>
+            <td>${soloHora(reg.horaEntrega)}</td>
+            <td>${soloHora(reg.horaPrestamo)}</td>
             <td>${reg.nombreResponsable}</td>
             <td>
                 <select class="form-select form-select-sm estado-prestamo-select" data-id="${reg.id}" data-estado="${reg.estadoPrestamo}">

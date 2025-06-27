@@ -62,15 +62,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('form-solicitud-carro').addEventListener('submit', async function(e) {
         e.preventDefault();
         const token = localStorage.getItem('jwt');
+        // Tomar fecha y horas y combinarlas en formato LocalDateTime
+        const fecha = this['fecha-dia'].value; // yyyy-MM-dd
+        const horaPrestamo = this['hora-prestamo'].value; // HH:mm
+        const horaEntrega = this['hora-entrega'].value; // HH:mm
+        // Combinar en formato yyyy-MM-ddTHH:mm
+        const horaPrestamoFull = fecha + 'T' + horaPrestamo;
+        const horaEntregaFull = fecha + 'T' + horaEntrega;
         const data = {
             rutDocente: parseInt(this['rut-docente'].value),
             nombreDocente: this['nombre-docente'].value,
             nombreCarro: this['nombre-carro'].value,
             cantidadEquipos: parseInt(this['cantidad-equipos'].value),
             sala: this['sala'].value,
-            fechaDia: this['fecha-dia'].value,
-            horaPrestamo: this['hora-prestamo'].value,
-            horaEntrega: this['hora-entrega'].value,
+            fechaDia: fecha,
+            horaPrestamo: horaPrestamoFull,
+            horaEntrega: horaEntregaFull,
             nombreResponsable: this['nombre-responsable'].value,
             estadoPrestamo: 'PRESTADO'
         };
@@ -120,7 +127,7 @@ function cargarCarrosDropdown() {
 function setFechaYHoraActual() {
     const now = new Date();
     const fecha = now.toISOString().slice(0,10);
-    const hora = now.toISOString().slice(0,16);
+    const hora = now.toTimeString().slice(0,5);
     document.getElementById('fecha-dia').value = fecha;
     document.getElementById('hora-prestamo').value = hora;
 }

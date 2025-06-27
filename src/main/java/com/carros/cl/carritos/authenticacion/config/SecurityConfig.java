@@ -46,9 +46,9 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/carros/**").hasAuthority("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/carros/**").hasAuthority("ADMIN")
                  // Permisos carros sobre /api/v1/carros/**
-                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/registro-carros/**").hasAuthority("ADMIN")
-                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/registro-carros/**").hasAuthority("ADMIN")
-                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/registro-carros/**").hasAuthority("ADMIN")
+                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/registro-carros/**").hasAnyAuthority("ADMIN", "OPERADOR", "AA")
+                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/registro-carros/**").hasAnyAuthority("ADMIN", "OPERADOR", "AA")
+                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/registro-carros/**").hasAnyAuthority("ADMIN", "OPERADOR", "AA")
                  .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/registro-carros/**").hasAuthority("ADMIN")
                 // El resto requiere autenticación (usuarios normales pueden ver otras páginas protegidas)
                 .anyRequest().authenticated()

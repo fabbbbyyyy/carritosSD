@@ -21,44 +21,23 @@ function parseJwt(token) {
 function getIconoSidebar(id) {
     switch (id) {
         case 'enlace-inicio': return 'bi-house-fill';
-        case 'enlace-usuarios': return 'bi-people-fill';
+        case 'enlace-dashboard': return 'bi-speedometer2';
         case 'enlace-gestion-roles': return 'bi-shield-lock-fill';
-        case 'enlace-validacion-menores': return 'bi-person-badge-fill';
-        case 'enlace-analisis-ia': return 'bi-cpu-fill';
-        case 'enlace-colas': return 'bi-list-ol';
-        case 'enlace-monitoreo-demoras': return 'bi-clock-history';
-        case 'enlace-informes': return 'bi-bar-chart-fill';
-        case 'enlace-menores': return 'bi-person-lines-fill';
-        case 'enlace-mascota': return 'bi-paw-fill';
-        case 'enlace-vehiculo': return 'bi-truck-front-fill';
-        case 'enlace-sag': return 'bi-file-earmark-text-fill';
-        case 'enlace-ocr': return 'bi-file-earmark-richtext-fill';
-        case 'enlace-validacion-vehiculos': return 'bi-car-front-fill';
-        case 'enlace-validacion-declaracion': return 'bi-file-check-fill';
-        case 'enlace-validacion-mascotas': return 'bi-shield-check';
-        case 'enlace-tramite-mascota': return 'bi-clipboard-plus';
+        case 'enlace-registro-carros': return 'bi-journal-text';
+        case 'enlace-solicitud-carro': return 'bi-box-arrow-in-right';
+        case 'enlace-lista-carros': return 'bi-list-ul';
         default: return 'bi-dot';
     }
 }
 
 function generarEnlacesSidebar() {
     const enlaces = [
-        { id: 'enlace-inicio', href: '/index.html', texto: 'Ir al inicio', mostrar: () => true },
-        { id: 'enlace-usuarios', href: '/usuarios.html', texto: 'Administrar Usuarios', mostrar: p => p.rolId == 1 },
-        { id: 'enlace-gestion-roles', href: '/gestion_roles.html', texto: 'Gestión de Roles', mostrar: p => p.rolId == 1 },
-        { id: 'enlace-analisis-ia', href: '/analisis_ia.html', texto: 'Análisis IA', mostrar: p => p.rolId == 1 || p.rolId == 3 },
-        { id: 'enlace-colas', href: '/gestion_colas.html', texto: 'Gestión de Colas', mostrar: p => p.rolId == 1 },
-        { id: 'enlace-monitoreo-demoras', href: '/monitoreo_demoras.html', texto: 'Monitoreo de Demoras', mostrar: p => p.rolId == 1 || p.rolId == 3 || p.rolId == 4 || p.rolId == 5 },
-        { id: 'enlace-informes', href: '/informes.html', texto: 'Informes', mostrar: p => p.rolId == 1 },
-        { id: 'enlace-menores', href: '/tramite_menores.html', texto: 'Trámite Menores', mostrar: p => [1,4,5].includes(p.rolId) },
-        { id: 'enlace-tramite-mascota', href: '/tramite_mascota.html', texto: 'Trámite Mascota', mostrar: p => p.rolId == 5 || p.rolId == 4 || p.rolId == 1 },
-        { id: 'enlace-vehiculo', href: '/tramite_vehiculo.html', texto: 'Trámite Vehículo', mostrar: p => p.rolId == 1 || p.rolId == 4 || p.rolId == 5 },
-        { id: 'enlace-sag', href: '/declaracion_sag.html', texto: 'Declaración SAG', mostrar: p => [1,4,5].includes(p.rolId) },
-        { id: 'enlace-ocr', href: '/ocr.html', texto: 'Ingresar OCR', mostrar: p => [1,4,5].includes(p.rolId) },
-        { id: 'enlace-validacion-vehiculos', href: '/validacion_vehiculos.html', texto: 'Validación Vehiculos', mostrar: p => p.rolId == 1 || p.rolId == 2 },
-        { id: 'enlace-validacion-declaracion', href: '/validacion_declaracion.html', texto: 'Validación Declaración', mostrar: p => p.rolId == 1 || p.rolId == 2 },
-        { id: 'enlace-validacion-mascotas', href: '/validacion_mascotas.html', texto: 'Validación Mascotas', mostrar: p => p.rolId == 2 || p.rolId == 1 },
-        { id: 'enlace-validacion-menores', href: '/validacion_menores.html', texto: 'Validación Menores', mostrar: p => p.rolId == 1 || p.rolId == 3 },
+        { id: 'enlace-inicio', href: '/index.html', texto: 'Inicio', mostrar: p => !!p },
+        { id: 'enlace-dashboard', href: '/dashboard.html', texto: 'Dashboard', mostrar: p => p && (p.rolId === 1) },
+        { id: 'enlace-gestion-roles', href: '/gestion_roles.html', texto: 'Gestión de Roles', mostrar: p => p && (p.rolId === 1) },
+        { id: 'enlace-lista-carros', href: '/lista_carros.html', texto: 'Lista de Carros', mostrar: p => p && (p.rolId === 1) },
+        { id: 'enlace-registro-carros', href: '/registro_carros.html', texto: 'Registro de Carros', mostrar: p => p && (p.rolId === 1 || p.rolId === 2 || p.rolId === 3) },
+        { id: 'enlace-solicitud-carro', href: '/solicitud_carro.html', texto: 'Solicitud de Carro', mostrar: p => p && (p.rolId === 1 || p.rolId === 2 || p.rolId === 3) },
     ];
     const token = checkAuth();
     if (!token) return;
@@ -99,6 +78,15 @@ function generarEnlacesSidebar() {
 
 document.addEventListener('DOMContentLoaded', function() {
     generarEnlacesSidebar();
+    // Ocultar el enlace de Dashboard en el sidebar si estamos en dashboard.html
+    if (window.location.pathname.endsWith('/dashboard.html')) {
+        setTimeout(function() {
+            var enlaceDashboard = document.getElementById('enlace-dashboard');
+            if (enlaceDashboard && enlaceDashboard.parentNode) {
+                enlaceDashboard.parentNode.remove();
+            }
+        }, 100);
+    }
     // Ocultar el enlace de Trámite Menores en el sidebar si existe (para tramite_menores.html)
     if (window.location.pathname.endsWith('/tramite_menores.html')) {
         setTimeout(function() {
