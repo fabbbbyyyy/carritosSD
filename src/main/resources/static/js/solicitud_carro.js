@@ -100,6 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 setFechaYHoraActual();
                 setResponsableDesdeJWT();
                 document.getElementById('estado-prestamo').value = 'PRESTADO';
+                setTimeout(function() {
+                    window.location.href = 'registro_carros.html';
+                }, 2000);
             } else {
                 const errorText = await response.text();
                 mensajeDiv.textContent = 'Error: ' + errorText;

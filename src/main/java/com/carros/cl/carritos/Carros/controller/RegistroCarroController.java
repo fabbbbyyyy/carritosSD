@@ -3,6 +3,9 @@ package com.carros.cl.carritos.Carros.controller;
 import com.carros.cl.carritos.Carros.model.RegistroCarro;
 import com.carros.cl.carritos.Carros.service.RegistroCarroService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +25,8 @@ public class RegistroCarroController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RegistroCarro>> listar() {
-        List<RegistroCarro> registros = registroCarroService.findAll();
+    public ResponseEntity<Page<RegistroCarro>> listar(@PageableDefault(size = 30, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        Page<RegistroCarro> registros = registroCarroService.findAll(pageable);
         if (registros.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

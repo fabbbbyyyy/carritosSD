@@ -27,10 +27,14 @@ function mostrarUsuarioAutenticado() {
     }
 }
 
-async function cargarRegistros() {
+let paginaActual = 0;
+let totalPaginas = 1;
+const TAMANO_PAGINA = 30;
+
+async function cargarRegistros(pagina = 0) {
     const token = checkAuth();
     try {
-        const response = await fetch('/api/v1/registro-carros', {
+        const response = await fetch(`/api/v1/registro-carros?page=${pagina}&size=${TAMANO_PAGINA}` , {
             headers: {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json',
@@ -38,15 +42,26 @@ async function cargarRegistros() {
             }
         });
         if (!response.ok) throw new Error('No se pudo cargar el listado');
-        const registros = await response.json();
-        mostrarTablaRegistros(registros);
+        const pageData = await response.json();
+        mostrarTablaRegistros(pageData.content);
+        paginaActual = pageData.number;
+        totalPaginas = pageData.totalPages;
+        actualizarPaginacion();
     } catch (error) {
         document.getElementById('tabla-registro-carros').innerHTML = `<tr><td colspan="11" style="color:red">${error.message}</td></tr>`;
     }
 }
 
+function actualizarPaginacion() {
+    const info = document.getElementById('paginacion-info');
+    info.textContent = `Página ${paginaActual + 1} de ${totalPaginas}`;
+    document.getElementById('btn-prev-page').disabled = paginaActual === 0;
+    document.getElementById('btn-next-page').disabled = paginaActual >= totalPaginas - 1;
+}
+
 // Renderiza la tabla de registros de carros con select de estado y color
 function mostrarTablaRegistros(registros) {
+    // Eliminar sort: el orden lo define el backend paginado
     let html = `<thead>
         <tr>
             <th>ID</th><th>Docente</th><th>RUT</th><th>Carro</th><th>Equipos</th><th>Sala</th><th>Fecha</th><th>Entrega</th><th>Devolución</th><th>Responsable</th><th>Estado</th><th>Acción</th>
@@ -54,7 +69,6 @@ function mostrarTablaRegistros(registros) {
     </thead>
     <tbody>`;
     registros.forEach(reg => {
-        let estadoClass = reg.estadoPrestamo === 'PRESTADO' ? 'select-prestado' : (reg.estadoPrestamo === 'ENTREGADO' ? 'select-entregado' : '');
         // Formatear horas a hh:mm
         function soloHora(str) {
             if (!str) return '';
@@ -69,25 +83,42 @@ function mostrarTablaRegistros(registros) {
             let dia = d.getDate().toString().padStart(2, '0');
             return mes + ':' + dia;
         }
-        html += `<tr data-id="${reg.id}">
-            <td>${reg.id}</td>
-            <td>${reg.nombreDocente}</td>
-            <td>${reg.rutDocente}</td>
-            <td>${reg.nombreCarro}</td>
-            <td>${reg.cantidadEquipos}</td>
-            <td>${reg.sala}</td>
-            <td>${soloMesDia(reg.fechaDia)}</td>
-            <td>${soloHora(reg.horaEntrega)}</td>
-            <td>${soloHora(reg.horaPrestamo)}</td>
-            <td>${reg.nombreResponsable}</td>
-            <td>
-                <select class="form-select form-select-sm estado-prestamo-select" data-id="${reg.id}" data-estado="${reg.estadoPrestamo}">
-                    <option value="PRESTADO" ${reg.estadoPrestamo === 'PRESTADO' ? 'selected' : ''}>Prestado</option>
-                    <option value="ENTREGADO" ${reg.estadoPrestamo === 'ENTREGADO' ? 'selected' : ''}>Entregado</option>
-                </select>
-            </td>
-            <td><button class="btn btn-primary btn-sm btn-guardar-estado" data-id="${reg.id}">Guardar</button></td>
-        </tr>`;
+        if (reg.estadoPrestamo === 'ENTREGADO') {
+            html += `<tr data-id="${reg.id}">
+                <td>${reg.id}</td>
+                <td>${reg.nombreDocente}</td>
+                <td>${reg.rutDocente}</td>
+                <td>${reg.nombreCarro}</td>
+                <td>${reg.cantidadEquipos}</td>
+                <td>${reg.sala}</td>
+                <td>${soloMesDia(reg.fechaDia)}</td>
+                <td>${soloHora(reg.horaEntrega)}</td>
+                <td>${soloHora(reg.horaPrestamo)}</td>
+                <td>${reg.nombreResponsable}</td>
+                <td><span class="badge bg-success badge-entregado">Entregado</span></td>
+                <td></td>
+            </tr>`;
+        } else {
+            html += `<tr data-id="${reg.id}">
+                <td>${reg.id}</td>
+                <td>${reg.nombreDocente}</td>
+                <td>${reg.rutDocente}</td>
+                <td>${reg.nombreCarro}</td>
+                <td>${reg.cantidadEquipos}</td>
+                <td>${reg.sala}</td>
+                <td>${soloMesDia(reg.fechaDia)}</td>
+                <td>${soloHora(reg.horaEntrega)}</td>
+                <td>${soloHora(reg.horaPrestamo)}</td>
+                <td>${reg.nombreResponsable}</td>
+                <td>
+                    <select class="form-select form-select-sm estado-prestamo-select" data-id="${reg.id}" data-estado="${reg.estadoPrestamo}">
+                        <option value="PRESTADO" ${reg.estadoPrestamo === 'PRESTADO' ? 'selected' : ''}>Prestado</option>
+                        <option value="ENTREGADO" ${reg.estadoPrestamo === 'ENTREGADO' ? 'selected' : ''}>Entregado</option>
+                    </select>
+                </td>
+                <td><button class="btn btn-primary btn-sm btn-guardar-estado" data-id="${reg.id}">Guardar</button></td>
+            </tr>`;
+        }
     });
     html += '</tbody>';
     document.getElementById('tabla-registro-carros').innerHTML = html;
@@ -122,14 +153,21 @@ function agregarEventosCambioEstado() {
                     body: JSON.stringify(nuevoEstado)
                 });
                 if (response.ok) {
-                    // Cambia el color del select según el nuevo estado
-                    select.classList.remove('select-prestado', 'select-entregado');
-                    if (nuevoEstado === 'PRESTADO') {
-                        select.classList.add('select-prestado');
-                    } else if (nuevoEstado === 'ENTREGADO') {
-                        select.classList.add('select-entregado');
+                    // Si el nuevo estado es ENTREGADO, eliminar el select y el botón
+                    if (nuevoEstado === 'ENTREGADO') {
+                        const tr = this.closest('tr');
+                        tr.querySelector('td:nth-child(11)').innerHTML = '<span class="badge bg-success badge-entregado">Entregado</span>';
+                        tr.querySelector('td:nth-child(12)').innerHTML = '';
+                    } else {
+                        // Cambia el color del select según el nuevo estado
+                        select.classList.remove('select-prestado', 'select-entregado');
+                        if (nuevoEstado === 'PRESTADO') {
+                            select.classList.add('select-prestado');
+                        } else if (nuevoEstado === 'ENTREGADO') {
+                            select.classList.add('select-entregado');
+                        }
+                        mostrarExito(this.closest('tr'), 'Estado actualizado');
                     }
-                    mostrarExito(this.closest('tr'), 'Estado actualizado');
                 } else {
                     const errorText = await response.text();
                     mostrarError(this.closest('tr'), 'Error: ' + errorText);
@@ -192,4 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }, 200);
+    document.getElementById('btn-prev-page').addEventListener('click', function() {
+        if (paginaActual > 0) cargarRegistros(paginaActual - 1);
+    });
+    document.getElementById('btn-next-page').addEventListener('click', function() {
+        if (paginaActual < totalPaginas - 1) cargarRegistros(paginaActual + 1);
+    });
 });
